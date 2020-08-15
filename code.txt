@@ -1,0 +1,103 @@
+Auto generated Doc
+******************
+
+Xsolla_scoring_lib_main.OneMetricScore(DF)
+
+   [summary]
+      Function for creating “one-metric-score” from scoring by
+      statuses.
+
+   [description]
+      DF - pandas dataframe. It’s an output of function
+      “workloadScoringByStatuses”.     If sum of scores by statuses
+      “closed” and “solved” is greater than or equal to 3 or score by
+      status “solved” is 2 then agent is overloaded. Score is “2”. If
+      sum of scores by statuses “closed” and “solved” is greater than
+      or equal to 2 and score by status “solved” is equal to 1 then
+      agent is doing great. Score is “1”. Else sum of scores by
+      statuses “closed” and “solved” less than 2 and score by status
+      “solved” equal to 0 then agents is free or doing nothing. Score
+      is “0”.
+
+Xsolla_scoring_lib_main.getFreshData(Credentials, ProjectId)
+
+   [summary]
+      Funtion for getting fresh data from BigQuery for workload
+      scoring model
+
+   [description]
+      Credentials - google service account object with credentials
+      data for project SqlQuery - string, sql query for BigQeury
+      database
+
+Xsolla_scoring_lib_main.insertScoreResultData(InsertDataFrame, InsertDataFrameTotal, InsertDataFrameChan, ProjectId, DatasetId, TableId, TableId2, TableId3)
+
+   [summary]
+      Function for inserting data to BigQuery database
+
+   [description]
+      InsertDataFrame - pandas dtaframe object, with score result data
+      by statuses InsertDataFrameTotal - pandas dtaframe object, with
+      total score ProjectId - string, name of project in google cloud
+      platform  DatasetId - string, name of dataset in bigquery for
+      raw data TableId - string, name of table for InsertDataFrame
+      data TableId2 - string, name of table for InsertDataFrameTotal
+      data
+
+Xsolla_scoring_lib_main.workloadScoreStatuses(LeftBoard, RightBoard, CurrentNumOfTasks)
+
+   [summary]
+      Function for scoring workload for current status
+
+   [description]
+      LeftBoard - float, left boarder for confidence interval
+      RightBoard - float right boarder for confidence interval
+      CurrentNumOfTasks - integer, number of customer support agent
+      tasks for current interval
+
+      If all metrics is 0 then agent didnt work that period or
+      absolutely free, score is “0”; If agent has some tasks but its
+      number less than lower border then he is free and can do more
+      task than he do. Score is “0”. If agent’s number of task in
+      confidence interval then he doing well. If agent’s number of
+      task more than higher border of confidence interval then he
+      hightly overloaded.
+
+Xsolla_scoring_lib_main.workloadScoringByStatuses(Data, NumOfAllDays, NumOfIntervalDays, current_date)
+
+   [summary]
+      Function for scoring workload by statuses (In Progress and Done)
+      for one employee, {NumOfAllDays}, {NumOfIntervalDays}
+
+   [description]
+      Data - pandas dataframe object, with hist data for customer
+      support agent NumOfAllDays - integer, number of days for all
+      hist data NumOfIntervalDays - integer, number of days for weekly
+      calculating interval
+
+Xsolla_scoring_lib_main.workloadScoringByStatusesChan(Data, NumOfAllDays, NumOfIntervalDays, current_date)
+
+   [summary]
+
+      Function for scoring workload by statuses (In Progress and Done)
+      and channels for one employee, {NumOfAllDays},
+      {NumOfIntervalDays}
+
+   [description]
+      Data - pandas dataframe object, with hist data for customer
+      support agent NumOfAllDays - integer, number of days for all
+      hist data NumOfIntervalDays - integer, number of days for weekly
+      calculating interval current_date - str like (‘yyyy-mm-dd’),
+      date from which need to count employee metrics
+
+      The function takes pandas dataframe object and groupes it by
+      statuses and channels.  Then it counts number of request “id”s
+      by periods with length {NumOfIntervalDays} back to
+      {NumOfAllDays} from the {current_date}. Here the last
+      {NumOfIntervalDays} is current period to compare. Next step is
+      calculatig dispertion of “id”s for all periods except last one,
+      and then we have standard deviation and standard error.  It uses
+      the standard error for calculating borders of confidence
+      interval. Then it use these borders to scoring support agents by
+      “0”, “1”, “2” number from lowest to highest overload. Returns
+      pandas dataframe with metrics and scores.
